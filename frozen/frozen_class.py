@@ -1,8 +1,9 @@
-from typing import List, Union, Sequence
+from typing import List, Optional, Sequence, Union
 from abc import abstractmethod, ABC
 from copy import deepcopy
+from sys import _getframe as get_stack
 
-from frozen.exception import FrozenKeyError, FrozenValueError
+from frozen.exception import FrozenException, FrozenKeyError, FrozenValueError
 
 QueryableItem = Union[str, int, slice]
 Queryable = Union[QueryableItem, Sequence[QueryableItem]]
@@ -83,10 +84,8 @@ class _Carrier:
 
 
 class FrozenObject(Frozen):
-
     def __init__(self, data):
         super().__init__()
-        # TODO: make self._data more secure
         t = type(data)
         if t == _Carrier:
             self._data = data.data
@@ -122,7 +121,7 @@ class FrozenObject(Frozen):
         return res
 
     @classmethod
-    def _freeze(cls, data):
+    def _pack(cls, data):
         try:
             idx = _simple_types.index(type(data))
             return _simple_classes[idx](data)
@@ -158,6 +157,18 @@ class FrozenObject(Frozen):
         seq.append(cls._convert(item))
         return seq
 
+    def __getattribute__(self, item):
+        if item == '_data':
+            try:
+                stack = get_stack(1)
+                caller = stack.f_locals.get('self')
+                method = stack.f_code.co_name
+                if not isinstance(caller, Frozen) or not method.startswith('__'):
+                    raise FrozenKeyError(item)
+            except ValueError:
+                pass
+        return super().__getattribute__(item)
+
     @classmethod
     def _getitem(cls, data, item: QueryableItem):
         if isinstance(item, (int, slice)):
@@ -165,11 +176,11 @@ class FrozenObject(Frozen):
         elif isinstance(item, str):
             try:
                 return data.__getitem__(item)
-            except KeyError:
+            except AttributeError or KeyError:
                 try:
                     return getattr(data, item)
-                except KeyError:
-                    raise FrozenKeyError(item)
+                except AttributeError:
+                    raise FrozenKeyError(item) from None
 
     def __getitem__(self, query: Queryable) -> Frozen:
         if isinstance(query, slice):
@@ -183,7 +194,39 @@ class FrozenObject(Frozen):
                 data = self._getitem(data, q)
         else:
             raise FrozenKeyError(f'Type {type(query)} is not queryable')
-        return self._freeze(data)
+        return self._pack(data)
+
+    def get(self, query: Queryable) -> Optional[Frozen]:
+        try:
+            return self.__getitem__(query)
+        except KeyError:
+            return None
+
+    def __getattr__(self, query: str) -> Frozen:
+        # check frame 1, 2 to determine what _init should be
+        if query == '_init':
+            try:
+                stack = get_stack(1)
+                caller = stack.f_locals.get('self')
+                if isinstance(caller, Frozen):
+                    stack = stack.f_back
+                    caller = stack.f_locals.get('self')
+                    method = stack.f_code.co_name
+                    if isinstance(caller, Frozen) and method == '__init__':
+                        return FrozenBool(1)
+                    else:
+                        return FrozenBool(0)
+            except ValueError:
+                pass
+        return self.__getitem__(query)
+
+    def __setitem__(self, key, value):
+        raise FrozenValueError('Frozen object is immutable')
+
+    def __setattr__(self, key, value):
+        if not self._init:
+            raise FrozenValueError('Frozen object is immutable')
+        super().__setattr__(key, value)
 
     def __eq__(self, other):
         if isinstance(other, FrozenObject):

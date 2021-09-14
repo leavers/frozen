@@ -7,10 +7,12 @@ from frozen_class import (
     FrozenStr,
     FrozenBytes,
     FrozenObject,
+    freeze
 )
 
+__version__ = '0.0.1'
 __author__ = 'Leavers'
-__version__ = '0.1.0'
+__contact__ = 'leavers930@gmail.com'
 
 __all__ = (
     'FrozenBool',
@@ -21,4 +23,5 @@ __all__ = (
     'FrozenStr',
     'FrozenBytes',
     'FrozenObject',
+    'freeze'
 )
