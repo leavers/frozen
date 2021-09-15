@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 from copy import deepcopy
 from sys import _getframe as get_stack
 
-from frozen.exception import FrozenException, FrozenKeyError, FrozenValueError
+from frozen_box.exception import FrozenException, FrozenKeyError, FrozenValueError
 
 QueryableItem = Union[str, int, slice]
 Queryable = Union[QueryableItem, Sequence[QueryableItem]]

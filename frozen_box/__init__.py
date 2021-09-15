@@ -1,4 +1,4 @@
-from frozen_class import (
+from frozen_box.frozen_class import (
     FrozenBool,
     FrozenInt,
     FrozenFloat,

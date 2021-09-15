@@ -1,5 +1,5 @@
-from frozen import freeze, FrozenObject
-from frozen.exception import FrozenKeyError, FrozenValueError
+from frozen_box import freeze, FrozenObject
+from frozen_box.exception import FrozenKeyError, FrozenValueError
 
 import pytest
 

@@ -1,4 +1,4 @@
-from frozen import FrozenBool
+from frozen_box import FrozenBool
 
 
 def test_bool_frozen():
