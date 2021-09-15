@@ -1,4 +1,4 @@
-from frozen import freeze
+from frozen_box import freeze
 
 
 def test_query_dict():

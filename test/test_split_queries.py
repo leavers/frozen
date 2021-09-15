@@ -1,5 +1,5 @@
-from frozen import FrozenObject
-from frozen.exception import FrozenException
+from frozen_box import FrozenObject
+from frozen_box.exception import FrozenException
 import pytest
 
 split = FrozenObject._split_queries
