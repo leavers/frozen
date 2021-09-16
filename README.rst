@@ -1,4 +1,7 @@
-Frozen is a container that:
+Frozen Box
+==========
+
+``frozen-box`` is a container that:
 
 * makes internal object immutable;
 * supports dot notation access.
